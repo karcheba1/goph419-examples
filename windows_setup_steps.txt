@@ -1,0 +1,104 @@
+windows setup
+  windows explorer options
+  windows update settings
+  download and install windows updates
+
+setup package managers and software
+  install app installer from ms store (winget)
+  open Windows PowerShell as admin
+  install windows terminal
+    winget install Microsoft.WindowsTerminal
+    # could also install from ms store
+  pin windows terminal to taskbar
+  set windows terminal as default
+  windows terminal default profile settings
+  open terminal as administrator
+  Set-ExecutionPolicy RemoteSigned
+  New-Item $PROFILE
+  install chocolatey package manager
+    # visit link https://chocolatey.org/install and follow instructions or,
+    iwr -useb community.chocolatey.org/install.ps1 | iex
+    # confirm no error thrown about creating $PROFILE
+  choco install gsudo
+  choco install powershell-core
+  refreshenv
+  cp $PROFILE $HOME\Documents\PowerShell
+  set powershell as default
+  close terminal
+
+(optional) install notepad++
+  sudo choco install notepadplusplus
+  refreshenv
+
+install git and poshgit
+  sudo choco install git
+  refreshenv
+  git config --global user.name "User Name"
+  git config --global user.email "user.email@domain.com"
+  sudo choco install poshgit
+  open $PROFILE in text editor
+    notepad++ $PROFILE
+      # load poshgit for git completion
+      Import-Module "C:\tools\poshgit\dahlbyk-posh-git-9bda399\src\posh-git.psd1"
+    close and save $PROFILE
+  . $PROFILE
+
+(OPTIONAL) install oh-my-posh
+  winget install JanDeDobbeleer.OhMyPosh
+  sudo oh-my-posh font install
+  set the nerd font as the windows terminal font
+  add to $PROFILE
+    # set the oh-my-posh theme
+    oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/night-owl.omp.json" | Invoke-Expression
+  . $PROFILE
+
+create or login to GitHub account
+
+setup ssh key for github
+  open terminal as admin
+  Get-Service ssh-agent | Set-Service -StartupType Automatic -PassThru `
+    | Start-Service
+  ssh-keygen -t ed25519 -C "<user.name>@<hostname> --> github>"
+  ssh-add $HOME\.ssh\id_ed25519
+  cat $HOME\.ssh\id_ed25519.pub
+  # copy public key
+  go to GitHub account in browser
+  go to Settings
+  go to SSH and GPG Keys
+  add SSH key (suggest name: <user.name>@<hostname>)
+
+(optional) install *nix utilities and build tools
+  sudo choco install less
+  sudo choco install grep
+  sudo choco install mingw
+  refreshenv
+
+(optional) create some app aliases in $PROFILE
+  # set cmdlet aliases
+  Set-Alias -Name npp -Value notepad++
+  Set-Alias -Name touch -Value New-Item
+
+install Python via pyenv
+  sudo choco install pyenv-win
+  # deactivate App Execution Aliases for python
+  pyenv update
+  pyenv install 3.10.6
+  pyenv global 3.10.6
+  refreshenv
+  pip install -U pip
+  pip install -U setuptools wheel
+  pip install -U flake8 virtualenv
+
+copy PowerShell $PROFILE to Windows PowerShell
+  cp $PROFILE $HOME\Documents\WindowsPowerShell\
+
+update software
+  open terminal in Windows PowerShell (in case powershell-core updates)
+  sudo choco upgrade all
+  winget upgrade
+  now for any app listed
+    winget upgrade <APP NAME>
+  check for Windows Updates
+
+install WSL and Ubuntu
+  TODO: write instructions
