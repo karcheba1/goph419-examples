@@ -1,0 +1,66 @@
+mac os setup
+  Finder > Preferences > Advanced
+    Show all filename extensions
+  Apple Menu > System Preferences > Software Update
+  download and install updates
+
+setup package managers and software
+  open a terminal
+  install homebrew (see https://brew.sh/)
+    /bin/bash -c "$(curl -fsSL \
+    https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  brew update
+  pin terminal to quick access / hub
+  terminal default profile settings
+
+install git
+  brew install git
+  git config --global user.name "User Name"
+  git config --global user.email "user.email@domain.com"
+
+create or login to GitHub account
+
+setup ssh key for github
+  ssh-keygen -t ed25519 -C "<user.name>@<hostname> --> github>"
+  eval "$(ssh-agent -s)"
+  ssh-add ~/.ssh/id_ed25519
+  cat ~/.ssh/id_ed25519.pub
+  # copy public key
+  go to GitHub account in browser
+  go to Settings
+  go to SSH and GPG Keys
+  add SSH key (suggest name: <user.name>@<hostname>)
+
+(optional) install *nix utilities and build tools
+  # may already have these
+  less --version
+  grep --version
+  brew install less
+  brew install grep
+
+(optional) turn of case sensitivity in bash
+  sudo -e ~/.bashrc
+    # turn off case sensitivity
+    bind 'set completion-ignore-case on'
+  save and exit
+  source ~/.bashrc
+
+install Python via pyenv
+  brew update
+  brew install pyenv
+  sudo -e ~/.bashrc
+    # pip configuration
+    [[ -d $HOME/.local/bin ]] && export PATH="$HOME/.local/bin:$PATH"
+    # pyenv configuration
+    if [ -d $HOME/.pyenv/bin ]; then
+      export PATH="$HOME/.pyenv/bin:$PATH"
+      eval "$(pyenv init -)"
+    fi
+  source ~/.bashrc
+  pyenv update
+  pyenv install 3.10.6
+  pyenv global
+  pyenv versions
+  pip install -U pip
+  pip install -U setuptools wheel
+  pip install -U flake8 virtualenv
