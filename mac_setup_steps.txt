@@ -40,26 +40,18 @@ setup ssh key for github
   grep --version
   brew install less
   brew install grep
+  brew install gcc
 
-(optional) turn of case sensitivity in bash
-  sudo -e ~/.bashrc
-    # turn off case sensitivity
-    bind 'set completion-ignore-case on'
-  save and exit
-  source ~/.bashrc
+(optional) consider installing oh-my-zsh https://ohmyz.sh/
+            to improve functionality of the zsh terminal on mac os
 
 install Python via pyenv
   brew update
   brew install pyenv
-  sudo -e ~/.bashrc
-    # pip configuration
-    [[ -d $HOME/.local/bin ]] && export PATH="$HOME/.local/bin:$PATH"
-    # pyenv configuration
-    if [ -d $HOME/.pyenv/bin ]; then
-      export PATH="$HOME/.pyenv/bin:$PATH"
-      eval "$(pyenv init -)"
-    fi
-  source ~/.bashrc
+  # follow instructions at https://github.com/pyenv/pyenv#homebrew-in-macos
+  # and https://github.com/pyenv/pyenv#set-up-your-shell-environment-for-pyenv
+  # and look for the instructions for zsh
+  source ~/.zshrc
   pyenv update
   pyenv install 3.10.6
   pyenv global
