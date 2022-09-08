@@ -5,82 +5,144 @@ windows setup
 
 setup package managers and software
   install app installer from ms store (winget)
+    # open MS Store
+    # search for App Installer
+    # click Install or Get
   open Windows PowerShell as admin
-  install windows terminal
+    winget
+    # check that you get a listing of the version and available commands
+  install Windows Terminal
     winget install Microsoft.WindowsTerminal
     # could also install from ms store
-  pin windows terminal to taskbar
-  set windows terminal as default
-  windows terminal default profile settings
+  (optional) pin windows terminal to taskbar
   open terminal as administrator
-  Set-ExecutionPolicy RemoteSigned
-  New-Item $PROFILE
+    Set-ExecutionPolicy RemoteSigned
+    echo $PROFILE
+    # make sure that the WindowsPowerShell directory exists
+    # could be in $HOME\Documents or $HOME\OneDrive\Documents
+    # depending on your system, if not then one of the following:
+    mkdir $HOME\Documents\WindowsPowerShell
+    mkdir $HOME\OneDrive\Documents\WindowsPowerShell
+    New-Item $PROFILE
   install chocolatey package manager
     # visit link https://chocolatey.org/install and follow instructions or,
     iwr -useb community.chocolatey.org/install.ps1 | iex
     # confirm no error thrown about creating $PROFILE
-  choco install gsudo
-  choco install powershell-core
-  refreshenv
-  cp $PROFILE $HOME\Documents\PowerShell
-  set powershell as default
+  install gsudo/sudo command and latest version of PowerShell
+    choco install gsudo
+    choco install powershell-core
+    refreshenv
+    cp $PROFILE $HOME\Documents\PowerShell
+      (or: cp $PROFILE $HOME\OneDrive\Documents\PowerShell)
+    # open Windows Terminal Settings
+    # and set Windows Terminal as the Default terminal application
+    # and PowerShell as the default profile
+    # (optional) under Windows Terminal Settings > Profiles > Defaults
+    # you can change the default appearance and fonts
   close terminal
 
 (optional) install notepad++
-  sudo choco install notepadplusplus
-  refreshenv
+  open a Windows Terminal session
+    sudo choco install notepadplusplus
+    refreshenv
+    # now you can open documents by entering: notepad++ "path\to\document"
 
-install git and poshgit
+install git (and, optionally, poshgit for tab completion with git commands)
   sudo choco install git
   refreshenv
+  git --version
+  # make sure you get a version number and not an error
+  # if it does not work, try closing and reopening the Terminal
   git config --global user.name "User Name"
   git config --global user.email "user.email@domain.com"
   sudo choco install poshgit
-  open $PROFILE in text editor
-    notepad++ $PROFILE
-      # load poshgit for git completion
-      Import-Module "C:\tools\poshgit\dahlbyk-posh-git-9bda399\src\posh-git.psd1"
-    close and save $PROFILE
-  . $PROFILE
+  # open $PROFILE in text editor (e.g. notepad++ $PROFILE)
+  # and add the following lines
+    # load poshgit for git completion
+    Import-Module "C:\tools\poshgit\dahlbyk-posh-git-9bda399\src\posh-git.psd1"
+  # close and save $PROFILE
+  # reload the $PROFILE settings with the following command
+    . $PROFILE
 
-(OPTIONAL) install oh-my-posh
+(optional) install oh-my-posh
   winget install JanDeDobbeleer.OhMyPosh
   sudo oh-my-posh font install
-  set the nerd font as the windows terminal font
-  add to $PROFILE
+  # open Windows Terminal settings
+  # and set the installed nerd font as the Windows Terminal font
+  # you may have to close and re-open Windows Terminal
+  # to refresh the font list
+  open $PROFILE in text editor
     # set the oh-my-posh theme
     oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/night-owl.omp.json" | Invoke-Expression
+    # for more information see https://ohmyposh.dev/docs
+    # you can browse the available themes at https://ohmyposh.dev/docs/themes
+    # to change your theme, change "night-owl" to the name of your
+    # desired theme in the "oh-my-posh init ..." command in $PROFILE
   . $PROFILE
 
 create or login to GitHub account
 
-setup ssh key for github
-  open terminal as admin
-  Get-Service ssh-agent | Set-Service -StartupType Automatic -PassThru `
-    | Start-Service
+setup ssh key for GitHub access
+  # open Terminal as admin
+  # first we need to ensure that the ssh-agent program starts automatically
+  Get-Service ssh-agent | Set-Service -StartupType Automatic -PassThru | Start-Service
+  # now we will generate an ssh private-public key pair
+  # this acts like your password, uniquely identifying your machine
+  # to your GitHub account when you access your own repositories
   ssh-keygen -t ed25519 -C "<user.name>@<hostname> --> github>"
+  # the last part in "double quotes" is just a comment to identify the key
+  # suggest for <user.name> use your Windows username
+  # suggest for <hostname> use the name of your computer which you can
+  # check at the Terminal by entering: hostname
+  # next, we add the private ssh key to the ssh-agent on the local machine
   ssh-add $HOME\.ssh\id_ed25519
+  # now, we need to get the public ssh key
+  # to provide to GitHub to authorize your account from your machine
+  # first, print out the public key
   cat $HOME\.ssh\id_ed25519.pub
-  # copy public key
-  go to GitHub account in browser
-  go to Settings
-  go to SSH and GPG Keys
-  add SSH key (suggest name: <user.name>@<hostname>)
+  # copy the public key printed at the Terminal
+  # login to your GitHub account in a browser
+  # go to Settings > SSH and GPG Keys > Add SSH key
+  # enter a name for the key in the first box
+  # (suggested name: <user.name>@<hostname>)
+  # paste the public key from the Terminal into the second (larger) text box
+  # click Save
 
 (optional) install *nix utilities and build tools
-  sudo choco install less
-  sudo choco install grep
-  sudo choco install mingw
+  sudo choco install less grep mingw
   refreshenv
+  # less is a program commonly used to view text files at the terminal
+  # without editing their contents
+  # try: less $PROFILE
+  # scroll up and down with arrow keys or Page Up and Page Down
+  # exit by entering q
+  # grep is a useful program for filtering text output at the terminal
+  # usually it is applied to the output of another command
+  # compare the following output
+  cat $PROFILE
+  cat $PROFILE | grep git
+  # you should see that the second command only shows lines of text
+  # containing "git"
+  # this is also useful when searching on package managers
+  # or when searching for lines of code in a file
+  # (e.g. after getting an error message)
 
 (optional) create some app aliases in $PROFILE
-  # set cmdlet aliases
-  Set-Alias -Name npp -Value notepad++
-  Set-Alias -Name touch -Value New-Item
+  # open $PROFILE in a text editor and add the following lines
+    # set cmdlet aliases
+    Set-Alias -Name npp -Value notepad++
+    Set-Alias -Name touch -Value New-Item
+  # you can add more aliases to your $PROFILE to quickly access
+  # commands that you use often with abbreviated expressions
 
 install Python via pyenv
-  sudo choco install pyenv-win
   # deactivate App Execution Aliases for python
+  # as these can interfere with some Terminal commands
+  # Start Menu > Manage app execution aliases
+  # uncheck or turn Off anything related to Python
+  # typically App Installer (python.exe) and App Installer (python3.exe)
+  # now, open a Terminal session
+  sudo choco install pyenv-win
   pyenv update
   pyenv install 3.10.6
   pyenv global 3.10.6
@@ -91,14 +153,13 @@ install Python via pyenv
 
 copy PowerShell $PROFILE to Windows PowerShell
   cp $PROFILE $HOME\Documents\WindowsPowerShell\
+  # or if using OneDrive
+  cp $PROFILE $HOME\OneDrive\Documents\WindowsPowerShell
 
 update software
-  open terminal in Windows PowerShell (in case powershell-core updates)
+  # open Terminal in Windows PowerShell (in case powershell-core updates)
   sudo choco upgrade all
   winget upgrade
-  now for any app listed
-    winget upgrade <APP NAME>
-  check for Windows Updates
-
-install WSL and Ubuntu
-  TODO: write instructions
+  # now for any app listed
+    winget upgrade <APP ID>
+  # check for Windows Updates
