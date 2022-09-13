@@ -15,6 +15,11 @@ def decimal_string_int(x):
     -------
     str
         Decimal string representation of the integer.
+
+    Notes
+    -----
+    An attempt is made to cast the input with int().
+    For float input, this will result in chopping of fractional amounts.
     """
     x = int(x)  # attempt to cast to int, so we can assume this later
     # store the sign, so we can assume positive values later
@@ -58,6 +63,8 @@ def main():
     x = -0x1f   # -31 in hexadecimal (base-16), 1*16**1 + 15*16**0
     # note: hexadecimal has digits: 0-9, a-f to represent 15 place values
     print(f"x : {hex(x):6}, dec : {decimal_string_int(x)}")
+    x = 12.867  # float input
+    print(f"x : {x:6}, dec : {decimal_string_int(x)}")
 
 
 if __name__ == "__main__":
