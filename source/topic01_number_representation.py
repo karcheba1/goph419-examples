@@ -100,11 +100,78 @@ def binary_string_int(x):
     return "".join(result)
 
 
+def binary_string_float64(x):
+    """Represent a non-integer number as a binary string.
+    Uses IEEE-754 double precision (64-bit) format.
+
+    Parameters
+    ----------
+    x : float
+        A number to convert to binary representation.
+
+    Returns
+    -------
+    str
+        Binary string representation of the number.
+
+    Notes
+    -----
+    An attempt is made to cast the input with float().
+    """
+    x = float(x)  # attempt to cast to float, so we can assume this later
+    # store the sign, so we can assume positive values later
+    sign = 0  # 0 for +ve, 1 for -ve
+    if x < 0:
+        sign = 1
+        x = -x
+    # normalize the significand / find the exponent
+    e = 0
+    while x >= 1.0:
+        x /= 2
+        e += 1
+    while x < 0.5:
+        x *= 2
+        e -= 1
+    # store the exponent as a list of bits
+    e_sign = 0
+    if e < 0:
+        e_sign = 1
+        e = -e
+    result = []
+    n = 9       # maximum exponent bit for double precision
+    while n >= 0:
+        if e >= 2**n:
+            result.append(1)
+            e -= 2**n  # get the remainder that still needs to be stored
+        else:
+            result.append(0)
+        n -= 1
+    # convert to string representation
+    result = [str(d) for d in result]
+    result.insert(0, " ")
+    result.insert(0, str(e_sign))
+    e_str = "".join(result)
+    # calculate bits of the significand
+    result = []
+    N = 53       # minimum significand bit for double precision
+    while n >= -N:
+        if x >= 2**n:
+            result.append(1)
+            x -= 2**n  # get the remainder that still needs to be stored
+        else:
+            result.append(0)
+        n -= 1
+    # convert significand to string representation
+    result = [str(d) for d in result]
+    return "".join([str(sign), " ", e_str, " ", "".join(result)])
+
+
 def main():
     print("\nConverting numbers to decimal and binary representation:")
     x = 173
     print(f"x : {x:6}, dec : {decimal_string_int(x)}")
     print(f"x : {x:6}, bin : {binary_string_int(x)}")
+    print(f"x : {x:6}, float : {binary_string_float64(x)}")
     x = -173
     print(f"x : {x:6}, dec : {decimal_string_int(x)}")
     print(f"x : {x:6}, bin : {binary_string_int(x)}")
@@ -121,6 +188,8 @@ def main():
     x = 12.867  # float input
     print(f"x : {x:6}, dec : {decimal_string_int(x)}")
     print(f"x : {x:6}, bin : {binary_string_int(x)}")
+    x = 1.567
+    print(f"x : {x:6}, float : {binary_string_float64(x)}")
 
 
 if __name__ == "__main__":
