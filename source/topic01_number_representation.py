@@ -1,6 +1,148 @@
 """Examples related to number representation in different bases and types."""
 
 
+def parse_sign(x):
+    """Separate the sign and value of a number.
+
+    Parameters
+    ----------
+    x : number
+        The value to parse.
+
+    Returns
+    -------
+    int
+        The sign of the number.
+        0 for +ve, 1 for -ve.
+    number
+        The absolute value of the number.
+    """
+    sign = 0
+    if x < 0:
+        sign = 1
+        x = -x
+    return sign, x
+
+
+def max_power_int(x, base=2):
+    """Determine the maximum power in a given base
+    required to represent an integer.
+
+    Parameters
+    ----------
+    x : int
+        The integer to represent.
+    base : int, optional, default=2
+        The base in which to represent the integer.
+        The default of 2 is for binary representation.
+
+    Returns
+    -------
+    int
+        The maximum place value power required
+        to represent x in the given base.
+    """
+    n = 0
+    while x >= base**n:     # >= guarantees the first digit will always be 0
+        n += 1
+    return n - 1            # now subtract 1 to avoid the leading 0
+
+
+def normalize_float(x, base=2):
+    """Get the normalized significand and exponent
+    for a floating point value such that the significand
+    is >= 1/base and < 1.
+
+    Parameters
+    ----------
+    x : number
+        The value to normalize.
+    base : int, optional, default=2
+        The base in which to represent the number.
+        The default of 2 is for binary representation.
+
+    Returns
+    -------
+    float
+        The normalized significand.
+    int
+        The exponent after normalization.
+    """
+    e = 0
+    min_value = 1 / base
+    while x < min_value:
+        x *= base
+        e -= 1
+    while x >= 1.0:
+        x /= base
+        e += 1
+    return x, e
+
+
+def digit_list(x, max_pow, min_pow=0, base=2):
+    """Get a list of digits representing a number
+    to a place value power
+    in a given base.
+
+    Parameters
+    ----------
+    x : number
+        The value to decompose.
+    max_pow : int
+        Maximum place value power.
+    min_pow : int, optional, default=0
+        Minimum place value power.
+        The default value of 0 works for integers, but not for floats.
+    base : int, optional, default=2
+        The base in which to represent the number.
+        The default value of 2 is for binary representation.
+
+    Returns
+    -------
+    list
+        A list of digit place values.
+        The values may not correspond to single digits,
+        so it may be necessary to convert them for base>10.
+    """
+    result = []
+    n = max_pow
+    while n >= min_pow:
+        if x >= base**n:    # in this case, there is a non-zero digit
+            result.append(int(x // base**n))    # calculate the digit
+            x %= base**n  # get the remainder that still needs to be stored
+        else:
+            result.append(0)
+        n -= 1
+    return result
+
+
+def digits_to_str_int(x, sign, digit_dict=None):
+    """Convert a list of integer digits to a string.
+
+    Parameters
+    ----------
+    x : list
+        The list of digits to convert.
+    sign : int
+        The sign digit.
+    digit_dict : dict, optional
+        A dict for converting digit values to single digit strings.
+
+    Returns
+    -------
+    str
+        The string representation of the input list.
+    """
+    # convert digits to string, optionally use a dict to convert digits
+    if digit_dict:
+        result = [str(digit_dict[d]) for d in x]
+    else:
+        result = [str(d) for d in x]
+    result.insert(0, " ")   # insert a space between sign and digits
+    result.insert(0, str(sign)) # insert the sign bit
+    return "".join(result)  # concatenate the digits together without spaces
+
+
 def decimal_string_int(x):
     """Represent a number as an integer decimal string.
 
@@ -22,32 +164,9 @@ def decimal_string_int(x):
     For float input, this will result in chopping of fractional amounts.
     """
     x = int(x)  # attempt to cast to int, so we can assume this later
-    # store the sign, so we can assume positive values later
-    sign = 0  # 0 for +ve, 1 for -ve
-    if x < 0:
-        sign = 1
-        x = -x
-    # find the maximum digit
-    # using >= here guarantees the first bit will always be 0
-    # then we can pop it later, and replace it with the sign bit
-    n = 0
-    while x >= 10**n:
-        n += 1
-    # store the value as a list of digits
-    result = []
-    while n >= 0:
-        if x >= 10**n:
-            result.append(x // 10**n)
-            x %= 10**n  # get the remainder that still needs to be stored
-        else:
-            result.append(0)
-        n -= 1
-    # convert to string representation
-    result.pop(0)
-    result = [str(d) for d in result]
-    result.insert(0, " ")
-    result.insert(0, str(sign))
-    return "".join(result)
+    sign, x = parse_sign(x)
+    n = max_power_int(x, base=10)
+    return digits_to_str_int(digit_list(x, n, base=10), sign)
 
 
 def binary_string_int(x):
@@ -71,33 +190,9 @@ def binary_string_int(x):
     For float input, this will result in chopping of fractional amounts.
     """
     x = int(x)  # attempt to cast to int, so we can assume this later
-    # store the sign, so we can assume positive values later
-    sign = 0  # 0 for +ve, 1 for -ve
-    if x < 0:
-        sign = 1
-        x = -x
-    # find the maximum digit
-    # using >= here guarantees the first bit will always be 0
-    # then we can pop it later, and replace it with the sign bit
-    n = 0
-    b = 2
-    while x >= b**n:
-        n += 1
-    # store the value as a list of bits
-    result = []
-    while n >= 0:
-        if x >= b**n:
-            result.append(1)
-            x -= b**n  # get the remainder that still needs to be stored
-        else:
-            result.append(0)
-        n -= 1
-    # convert to string representation
-    result.pop(0)
-    result = [str(d) for d in result]
-    result.insert(0, " ")
-    result.insert(0, str(sign))
-    return "".join(result)
+    sign, x = parse_sign(x)
+    n = max_power_int(x)
+    return digits_to_str_int(digit_list(x, n), sign)
 
 
 def binary_string_float64(x):
@@ -119,77 +214,70 @@ def binary_string_float64(x):
     An attempt is made to cast the input with float().
     """
     x = float(x)  # attempt to cast to float, so we can assume this later
-    # store the sign, so we can assume positive values later
-    sign = 0  # 0 for +ve, 1 for -ve
-    if x < 0:
-        sign = 1
-        x = -x
-    # normalize the significand / find the exponent
-    e = 0
-    while x >= 1.0:
-        x /= 2
-        e += 1
-    while x < 0.5:
-        x *= 2
-        e -= 1
-    # store the exponent as a list of bits
-    e_sign = 0
-    if e < 0:
-        e_sign = 1
-        e = -e
-    result = []
-    n = 9       # maximum exponent bit for double precision
-    while n >= 0:
-        if e >= 2**n:
-            result.append(1)
-            e -= 2**n  # get the remainder that still needs to be stored
-        else:
-            result.append(0)
-        n -= 1
-    # convert to string representation
-    result = [str(d) for d in result]
-    result.insert(0, " ")
-    result.insert(0, str(e_sign))
-    e_str = "".join(result)
-    # calculate bits of the significand
-    result = []
-    N = 53       # minimum significand bit for double precision
-    while n >= -N:
-        if x >= 2**n:
-            result.append(1)
-            x -= 2**n  # get the remainder that still needs to be stored
-        else:
-            result.append(0)
-        n -= 1
+    sign, x = parse_sign(x)     # split sign and value of the number
+    x, e = normalize_float(x)   # get significand and exponent
+    e_sign, e = parse_sign(e)   # split sign and value of exponent
+    # get exponent str, 2**9 is max place value for double precision
+    e_str = digits_to_str_int(digit_list(e, max_pow=9), e_sign)
+    result = digit_list(x, -1, -53)     # get digits of significand
     # convert significand to string representation
-    result = [str(d) for d in result]
-    return "".join([str(sign), " ", e_str, " ", "".join(result)])
+    # sign bit, then exponent bits, then significand bits
+    return "".join([str(sign),
+                    " ", e_str,
+                    " ", "".join([str(d) for d in result])])
 
 
 def main():
     print("\nConverting numbers to decimal and binary representation:")
+
     x = 173
-    print(f"x : {x:6}, dec : {decimal_string_int(x)}")
-    print(f"x : {x:6}, bin : {binary_string_int(x)}")
-    print(f"x : {x:6}, float : {binary_string_float64(x)}")
+    print(f"\nx : {x}")
+    print(f"dec : {decimal_string_int(x)}")
+    print(f"bin : {binary_string_int(x)}")
+    print(f"float : {binary_string_float64(x)}")
+
     x = -173
-    print(f"x : {x:6}, dec : {decimal_string_int(x)}")
-    print(f"x : {x:6}, bin : {binary_string_int(x)}")
+    print(f"\nx : {x}")
+    print(f"dec : {decimal_string_int(x)}")
+    print(f"bin : {binary_string_int(x)}")
+    print(f"float : {binary_string_float64(x)}")
+
     x = 0b001001  # 9 in binary, the 0b prefix tells Python it is binary
-    print(f"x : {bin(x):6}, dec : {decimal_string_int(x)}")
-    print(f"x : {bin(x):6}, bin : {binary_string_int(x)}")
+    print(f"\nx : {bin(x)}")
+    print(f"dec : {decimal_string_int(x)}")
+    print(f"bin : {binary_string_int(x)}")
+    print(f"float : {binary_string_float64(x)}")
+
     x = 0o0011  # 9 in octal, the 0o prefix tells Python it is octal
-    print(f"x : {oct(x):6}, dec : {decimal_string_int(x)}")
-    print(f"x : {oct(x):6}, bin : {binary_string_int(x)}")
+    print(f"\nx : {oct(x)}")
+    print(f"dec : {decimal_string_int(x)}")
+    print(f"bin : {binary_string_int(x)}")
+    print(f"float : {binary_string_float64(x)}")
+
     x = -0x1f   # -31 in hexadecimal (base-16), 1*16**1 + 15*16**0
     # note: hexadecimal has digits: 0-9, a-f to represent 15 place values
-    print(f"x : {hex(x):6}, dec : {decimal_string_int(x)}")
-    print(f"x : {hex(x):6}, bin : {binary_string_int(x)}")
+    print(f"\nx : {hex(x)}")
+    print(f"dec : {decimal_string_int(x)}")
+    print(f"bin : {binary_string_int(x)}")
+    print(f"float : {binary_string_float64(x)}")
+
     x = 12.867  # float input
-    print(f"x : {x:6}, dec : {decimal_string_int(x)}")
-    print(f"x : {x:6}, bin : {binary_string_int(x)}")
+    print(f"\nx : {x}")
+    print(f"dec : {decimal_string_int(x)}")
+    print(f"bin : {binary_string_int(x)}")
+    print(f"float : {binary_string_float64(x)}")
+
     x = 1.567
-    print(f"x : {x:6}, float : {binary_string_float64(x)}")
+    print(f"\nx : {x}")
+    print(f"dec : {decimal_string_int(x)}")
+    print(f"bin : {binary_string_int(x)}")
+    print(f"float : {binary_string_float64(x)}")
+
+    x = 0.2
+    print(f"\nx : {x}")
+    print(f"dec : {decimal_string_int(x)}")
+    print(f"bin : {binary_string_int(x)}")
+    print(f"float : {binary_string_float64(x)}")
 
 
 if __name__ == "__main__":
