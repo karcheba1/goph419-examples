@@ -1,5 +1,17 @@
 """An example module containing Gauss elimination
 and related routines.
+
+Notes
+-----
+Most functions in this module are prefixed with an underscore _.
+There is no such thing as a "private" variable, function, or method
+in Python,
+but the _ prefix is a standard Python idiom for items that are
+not usually meant for external access.
+You can still import and use them like any other variable,
+but you should make sure that you understand what you are doing
+because these types of objects will often make assumptions
+rather than performing explicit checks for valid input.
 """
 
 
@@ -7,6 +19,33 @@ import numpy as np
 
 
 def _validate_gauss_input(A, b):
+    """Check for valid input arrays to solve a system A * x = b.
+
+    Parameters
+    ----------
+    A : array_like, shape = (n, n)
+        Coefficient matrix
+    b : array_like, shape = (n, *)
+
+    Returns
+    -------
+    numpy.ndarray, shape = (n, n), dtype=float
+        The coefficient matrix as a 2d array
+    numpy.ndarray, shape = (n, m), dtype=float, m >= 1
+        The right-hand-side matrix as a 2d array
+    int
+        The number of rows in the system
+    int
+        The number of right-hand-side vectors
+    bool
+        A flag for whether the input b was 1d
+
+    Raises
+    ------
+    ValueError
+        If A is not 2d and square
+        If b is not 1d or 2d, or has a different number of rows from A
+    """
     # make sure that A and b are array_like of float
     A = np.array(A, dtype=float)
     b = np.array(b, dtype=float)
@@ -184,10 +223,19 @@ def gauss_solve(A, b, pivot=True, split_LU=False):
     aug = _form_augmented_matrix(A, b)
     aug, LU, P = _forward_elimination(aug, n, pivot=pivot)
     if split_LU:
+        # get the lower triangle using numpy.tril() and numpy.eye()
+        # k = -1 here means to set all values
+        # above the first subdiagonal (including the main diagonal) to zero
+        # adding with numpy.eye(n) puts ones on the main diagonal
         L = np.tril(LU, k=-1) + np.eye(n)
+        # get the upper triangle using numpy.triu()
+        # with no k value passed, the default is to set all values
+        # below the main diagonal to zero
         U = np.triu(LU)
     aug = _backward_substitution(aug, n)
+    # extract the solution vector(s) from the augmented matrix
     x = aug[:, n:]
+    # return the solution vector(s), and the LU decomposition with P matrix
     return (x.flatten() if out_1d else x,
             (L, U) if split_LU else LU,
             P)
