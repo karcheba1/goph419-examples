@@ -11,7 +11,8 @@ from topic02_linalg_module import (
 
 def solve_1d_rhs_naive():
     """An example solving with a 1d rhs vector."""
-    print("--------------------------------")
+
+    print("\n--------------------------------")
     print("Solve single RHS using naive GE:")
     print("--------------------------------\n")
 
@@ -27,5 +28,21 @@ def solve_1d_rhs_naive():
     print(f"A * x\n{A @ x}")
 
 
+def solve_Ainv_naive():
+    """An example solving for a matrix inverse using naive GE."""
+
+    print("\n--------------------------------")
+    print("Solve Ainv using naive GE:")
+    print("--------------------------------\n")
+
+    A = np.array([[60, 920, 160], [240, 40, 720], [700, 40, 120]])
+    Ainv = gauss_naive_solve(A, np.eye(A.shape[0]))
+
+    print(f"A\n{A}\n")
+    print(f"Ainv = gauss_naive_solve(A, numpy.eye(A.shape[0]))\n{Ainv}\n")
+    print(f"A * Ainv\n{A @ Ainv}")
+
+
 if __name__ == "__main__":
     solve_1d_rhs_naive()
+    solve_Ainv_naive()
