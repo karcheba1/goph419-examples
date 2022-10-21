@@ -32,7 +32,7 @@ def _validate_gauss_input(A, b):
     else:
         nb = b.shape[1]
     # return the validated input and properties
-    return A, b, n, out_1d
+    return A, b, n, nb, out_1d
 
 
 def _form_augmented_matrix(A, b):
@@ -92,14 +92,14 @@ def _forward_elimination(A, n, pivot=True):
             kmax = np.nonzero(A_abs_piv == piv_max)[0][0] + k
             # swap rows, if necessary
             if kmax != k:
-                Ae[k, :], Ae[kmax, :] = Ae[kmax, :], Ae[k, :]
+                Ae[k, :], Ae[kmax, :] = Ae[kmax, :].copy(), Ae[k, :].copy()
         # compute elimination coefficients
         Ae[kp1:m, k] /= Ae[k, k]
         # eliminate below the pivot
-        Ae[kp1:m, kp1:] -= Ae[kp1:m, k:kp1] @ Ae[k:kp1, kp1:m]
+        Ae[kp1:, kp1:m] -= Ae[kp1:, k:kp1] @ Ae[k:kp1, kp1:m]
         # increment pivot index
         k += 1
-    return Ae
+    return Ae[:, :m]
 
 
 def _backward_substitution(A, n):
@@ -165,7 +165,7 @@ def gauss_solve(A, b, pivot=True):
     even when A is not singular.
     This is less common when pivot == True (the default).
     """
-    A, b, n, out_1d = _validate_gauss_input(A, b)
+    A, b, n, nb, out_1d = _validate_gauss_input(A, b)
     aug = _form_augmented_matrix(A, b)
     aug = _forward_elimination(aug, n, pivot=pivot)
     aug = _backward_substitution(aug, n)
