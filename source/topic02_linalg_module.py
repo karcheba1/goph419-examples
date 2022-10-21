@@ -99,7 +99,10 @@ def _forward_elimination(A, n, pivot=True):
         Ae[kp1:, kp1:m] -= Ae[kp1:, k:kp1] @ Ae[k:kp1, kp1:m]
         # increment pivot index
         k += 1
-    return Ae[:, :m]
+    # return reduced augmented matrix, LU matrix, and P matrix
+    return (Ae[:, :m].copy(),
+            Ae[:, :n].copy(),
+            Ae[:, m:].copy() if pivot else np.eye(n))
 
 
 def _backward_substitution(A, n):
@@ -132,8 +135,9 @@ def _backward_substitution(A, n):
     return Ab
 
 
-def gauss_solve(A, b, pivot=True):
+def gauss_solve(A, b, pivot=True, split_LU=False):
     """Solve a system A * x = b for x using Gaussian elimination.
+    Also obtains LU decomposition of the system.
 
     Parameters
     ----------
@@ -143,11 +147,22 @@ def gauss_solve(A, b, pivot=True):
         The right-hand-side vector(s)
     pivot : bool, optional, default=True
         Flag for performing partial pivoting
+    split_LU : bool, optional, default=False
+        Flag for splitting LU decomposition matrix into separate L and U
 
     Returns
     -------
     numpy.ndarray, shape = (n, *)
         The solution to the system, same shape as b
+    numpy.ndarray, shape = (n, n) or tuple of numpy.ndarray with shape = (n, n)
+        The LU decomposition
+        either in combined form with L coefficients below the main diagonal
+        and U coefficients at and above the main diagonal
+        or in separated form as a tuple
+        with L as the first element and U as the second element
+    numpy.ndarray, shape = (n, n)
+        The permutation matrix P to go with the LU decomposition,
+        which satisfies L * U == P * A
 
     Raises
     ------
@@ -167,7 +182,12 @@ def gauss_solve(A, b, pivot=True):
     """
     A, b, n, nb, out_1d = _validate_gauss_input(A, b)
     aug = _form_augmented_matrix(A, b)
-    aug = _forward_elimination(aug, n, pivot=pivot)
+    aug, LU, P = _forward_elimination(aug, n, pivot=pivot)
+    if split_LU:
+        L = np.tril(LU, k=-1) + np.eye(n)
+        U = np.triu(LU)
     aug = _backward_substitution(aug, n)
     x = aug[:, n:]
-    return x.flatten() if out_1d else x
+    return (x.flatten() if out_1d else x,
+            (L, U) if split_LU else LU,
+            P)
