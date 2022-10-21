@@ -58,7 +58,7 @@ def _form_augmented_matrix(A, b):
     return np.hstack([A, b])
 
 
-def _forward_elimination(A, n):
+def _forward_elimination(A, n, pivot=True):
     """Perform forward elimination on a matrix.
 
     Parameters
@@ -77,13 +77,26 @@ def _forward_elimination(A, n):
     -----
     Does not explicitly check that A.shape[0] == n
     """
-    Ae = np.array(A) # make a copy, do not overwrite A
+    m = A.shape[1]
+    if pivot:
+        Ae = np.hstack([A, np.eye(n)])  # initialize permutation matrix
+    else:
+        Ae = np.array(A) # make a copy, do not overwrite A
     k = 0
     while (kp1 := k + 1) < n:
+        if pivot:
+            # get absolute values of coefficients at and below the pivot
+            A_abs_piv = np.abs(Ae[k:, k])
+            piv_max = np.max(A_abs_piv)
+            # get the index of the row with the maximum pivot value
+            kmax = np.nonzero(A_abs_piv == piv_max)[0][0] + k
+            # swap rows, if necessary
+            if kmax != k:
+                Ae[k, :], Ae[kmax, :] = Ae[kmax, :], Ae[k, :]
         # compute elimination coefficients
-        Ae[kp1:, k] /= Ae[k, k]
+        Ae[kp1:m, k] /= Ae[k, k]
         # eliminate below the pivot
-        Ae[kp1:, kp1:] -= Ae[kp1:, k:kp1] @ Ae[k:kp1, kp1:]
+        Ae[kp1:m, kp1:] -= Ae[kp1:m, k:kp1] @ Ae[k:kp1, kp1:m]
         # increment pivot index
         k += 1
     return Ae
@@ -119,10 +132,42 @@ def _backward_substitution(A, n):
     return Ab
 
 
-def gauss_naive_solve(A, b):
+def gauss_solve(A, b, pivot=True):
+    """Solve a system A * x = b for x using Gaussian elimination.
+
+    Parameters
+    ----------
+    A : array_like, shape = (n, n)
+        The coefficient matrix
+    b : array_like, shape = (n, *)
+        The right-hand-side vector(s)
+    pivot : bool, optional, default=True
+        Flag for performing partial pivoting
+
+    Returns
+    -------
+    numpy.ndarray, shape = (n, *)
+        The solution to the system, same shape as b
+
+    Raises
+    ------
+    ValueError
+        If A is not 2d and square
+        If b is not 1d or 2d, or has a different number of rows from A
+
+    Notes
+    -----
+    If pivot == False, performs naive Gaussian elimination
+    with no pivoting.
+    If pivot == True, performs Gaussian elimination
+    with partial pivoting (pivot rows, but not columns).
+    In either case, it may fail due to divide-by-zero in a pivot position
+    even when A is not singular.
+    This is less common when pivot == True (the default).
+    """
     A, b, n, out_1d = _validate_gauss_input(A, b)
     aug = _form_augmented_matrix(A, b)
-    aug = _forward_elimination(aug, n)
+    aug = _forward_elimination(aug, n, pivot=pivot)
     aug = _backward_substitution(aug, n)
     x = aug[:, n:]
     return x.flatten() if out_1d else x
