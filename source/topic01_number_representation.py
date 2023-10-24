@@ -134,10 +134,7 @@ def digits_to_str_int(x, sign, digit_dict=None):
         The string representation of the input list.
     """
     # convert digits to string, optionally use a dict to convert digits
-    if digit_dict:
-        result = [str(digit_dict[d]) for d in x]
-    else:
-        result = [str(d) for d in x]
+    result = [str(digit_dict[d]) for d in x] if digit_dict else [str(d) for d in x]
     result.insert(0, " ")   # insert a space between sign and digits
     result.insert(0, str(sign)) # insert the sign bit
     return "".join(result)  # concatenate the digits together without spaces

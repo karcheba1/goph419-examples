@@ -56,7 +56,7 @@ def _validate_gauss_input(A, b):
     if (ndimA := len(A.shape)) != 2:
         raise ValueError(f"A is {ndimA}-dimensional, should be 2d")
     # check that A is square
-    if not (n := A.shape[0]) == (m := A.shape[1]):
+    if (n := A.shape[0]) != (m := A.shape[1]):
         raise ValueError(f"A has {n} rows and {m} columns, should be square")
     # check that b is 1d or 2d
     if (ndimb := len(b.shape)) not in [1, 2]:
@@ -117,10 +117,7 @@ def _forward_elimination(A, n, pivot=True):
     Does not explicitly check that A.shape[0] == n
     """
     m = A.shape[1]
-    if pivot:
-        Ae = np.hstack([A, np.eye(n)])  # initialize permutation matrix
-    else:
-        Ae = np.array(A) # make a copy, do not overwrite A
+    Ae = np.hstack([A, np.eye(n)]) if pivot else np.array(A)
     k = 0
     while (kp1 := k + 1) < n:
         if pivot:
